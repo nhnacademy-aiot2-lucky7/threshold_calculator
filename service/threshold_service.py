@@ -28,7 +28,7 @@ def calculate_threshold_with_prophet(gateway_id, sensor_id, sensor_type, duratio
     threshold_max = round(last["yhat_upper"], 2)
     threshold_avg = round(last["yhat"], 2)
 
-    previous = get_recent_thresholds(sensor_id, sensor_type, limit=5)
+    previous = get_recent_thresholds(gateway_id, sensor_id, sensor_type, limit=5)
     if previous:
         delta_min = round(threshold_min - np.mean([p["threshold_min"] for p in previous]), 2)
         delta_max = round(threshold_max - np.mean([p["threshold_max"] for p in previous]), 2)
