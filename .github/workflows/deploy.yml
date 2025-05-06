@@ -19,7 +19,7 @@ jobs:
           username: ${{ secrets.SSH_ID }}
           key: ${{ secrets.SSH_KEY }}
           port: ${{ secrets.SSH_PORT }}
-          source: "threshold-calculator/*"
+          source: "**"
           target: "~/ai/threshold-calculator"
           rm: false
 
