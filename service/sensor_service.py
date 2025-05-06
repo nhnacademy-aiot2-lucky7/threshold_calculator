@@ -1,4 +1,5 @@
 import datetime
+import logging
 import requests
 from typing import List, Optional, Union
 
@@ -12,7 +13,7 @@ def get_recent_thresholds(gateway_id, sensor_id, sensor_type, limit=5):
         response.raise_for_status()
         return response.json()
     except requests.exceptions.RequestException as e:
-        print(f"[ERROR] get_recent_thresholds 실패: {e}")
+        logging.error(f"[ERROR] get_recent_thresholds 실패: {e}", exc_info=True)
         return []
 
 # 임계치 계산 결과 저장
@@ -27,9 +28,9 @@ def save_result(gateway_id, sensor_id, sensor_type, result):
     try:
         response = requests.post("http://storage-service/api/threshold", json=payload)
         response.raise_for_status()
-        print(f"[POST] 저장 성공: {response.status_code}")
+        logging.info(f"[POST] 저장 성공: {response.status_code}")
     except requests.exceptions.RequestException as e:
-        print(f"[ERROR] save_result 실패: {e}")
+        logging.error(f"[ERROR] save_result 실패: {e}", exc_info=True)
 
 # 모든 게이트웨이 id 조회
 def get_all_gateway_id():
@@ -38,7 +39,7 @@ def get_all_gateway_id():
         response.raise_for_status()
         return response.json()
     except requests.exceptions.RequestException as e:
-        print(f"[ERROR] get_all_gateway_id 실패: {e}")
+        logging.error(f"[ERROR] get_all_gateway_id 실패: {e}", exc_info=True)
         return []
 
 # 상태에 따른 센서 정보 조회
@@ -60,7 +61,7 @@ def get_sensor_list_by_state(state: Optional[Union[str, List[str]]] = None) -> l
         response.raise_for_status()
         return response.json()
     except requests.exceptions.RequestException as e:
-        print(f"[ERROR] get_sensor_list_by_state 실패: {e}")
+        logging.error(f"[ERROR] get_sensor_list_by_state 실패: {e}", exc_info=True)
         return []
 
 # gateway Id에 따른 센서 정보 조회
@@ -70,7 +71,7 @@ def get_sensor_list_by_gateway_id(gateway_id):
         response.raise_for_status()
         return response.json()
     except requests.exceptions.RequestException as e:
-        print(f"[ERROR] get_sensor_list_by_gateway_id 실패: {e}")
+        logging.error(f"[ERROR] get_sensor_list_by_gateway_id 실패: {e}", exc_info=True)
         return []
 
 # 센서 state update
@@ -80,6 +81,6 @@ def update_sensor_state(gateway_id, sensor_id, sensor_type, state):
     try:
         response = requests.patch(url, json=payload)
         response.raise_for_status()
-        print(f"[STATE] {sensor_id} 상태 → {state} 변경 성공 ({response.status_code})")
+        logging.info(f"[STATE] {sensor_id} 상태 → {state} 변경 성공 ({response.status_code})")
     except requests.exceptions.RequestException as e:
-        print(f"[ERROR] update_sensor_state 실패: {e}")
+        logging.error(f"[ERROR] update_sensor_state 실패: {e}", exc_info=True)
