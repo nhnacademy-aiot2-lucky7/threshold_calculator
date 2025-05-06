@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+import logging
 from prophet import Prophet
 from service.influx_service import get_sensor_data_count, get_sensor_values_with_time
 from config.config import MIN_REQUIRED_COUNT
@@ -28,7 +29,7 @@ def calculate_threshold_with_prophet(gateway_id, sensor_id, sensor_type, duratio
     threshold_max = round(last["yhat_upper"], 2)
     threshold_avg = round(last["yhat"], 2)
 
-    previous = get_recent_thresholds(sensor_id, sensor_type, limit=5)
+    previous = get_recent_thresholds(gateway_id, sensor_id, sensor_type, limit=5)
     if previous:
         delta_min = round(threshold_min - np.mean([p["threshold_min"] for p in previous]), 2)
         delta_max = round(threshold_max - np.mean([p["threshold_max"] for p in previous]), 2)
@@ -71,15 +72,10 @@ def calculate_threshold_with_prophet(gateway_id, sensor_id, sensor_type, duratio
 
 # 분석 성공 처리
 def handle_successful_analysis(gateway_id: str, sensor_id: str, sensor_type: str, result: dict):
-    # 결과 저장 (sensor 서비스가 임계값 저장 책임)
     save_result(gateway_id, sensor_id, sensor_type, result)
-    
-    # 상태 변경
     update_sensor_state(sensor_id, "completed")
-
-    # 메타 정보 초기화
     set_sensor_meta(gateway_id, sensor_id, sensor_type, result.get("count", 0), 0)
-    print(f"[OK] {sensor_id} 분석 완료")
+    logging.info(f"[OK] {sensor_id} 분석 완료")
 
 # 분석 실패 처리
 def handle_failed_analysis(gateway_id: str, sensor_id: str, sensor_type: str, new_count: int, reason: str):
@@ -96,6 +92,6 @@ def handle_failed_analysis(gateway_id: str, sensor_id: str, sensor_type: str, ne
 
     if fail_count >= 5 or new_count == 0:
         update_sensor_state(sensor_id, "abandoned")
-        print(f"[ABANDON] {sensor_id} → abandoned")
+        logging.warning(f"[ABANDON] {sensor_id} → abandoned (fail_count={fail_count})")
     else:
-        print(f"[SKIP] {sensor_id} 분석 실패: {reason} (fail_count={fail_count})")
+        logging.warning(f"[SKIP] {sensor_id} 분석 실패: {reason} (fail_count={fail_count})")
