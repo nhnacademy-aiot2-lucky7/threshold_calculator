@@ -1,0 +1,38 @@
+name: Deploy Threshold Calculator
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - 'threshold-calculator/**'
+      - '.github/workflows/deploy-calculator.yml'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Upload threshold-calculator to server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SSH_IP }}
+          username: ${{ secrets.SSH_ID }}
+          key: ${{ secrets.SSH_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          source: "threshold-calculator/*"
+          target: "~/ai/threshold-calculator"
+          rm: false
+
+      - name: Run deploy script on server
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SSH_IP }}
+          username: ${{ secrets.SSH_ID }}
+          key: ${{ secrets.SSH_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          script_stop: true
+          script: |
+            bash ~/startup/thresholdCalculatorStartup.sh
