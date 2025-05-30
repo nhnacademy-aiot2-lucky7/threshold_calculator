@@ -55,19 +55,29 @@ def calculate_threshold_with_prophet(gateway_id, sensor_id, sensor_type, duratio
 
     return {
         "ready": True,
-        "threshold_min": threshold_min,
-        "threshold_max": threshold_max,
-        "threshold_avg": threshold_avg,
-        "min_range_min": min_range_min,
-        "min_range_max": min_range_max,
-        "max_range_min": max_range_min,
-        "max_range_max": max_range_max,
-        "avg_range_min": avg_range_min,
-        "avg_range_max": avg_range_max,
-        "min_diff": delta_min,
-        "max_diff": delta_max,
-        "avg_diff": delta_avg,
-        "count": count
+        "threshold":{
+            "min": threshold_min,
+            "max": threshold_max,
+            "avg": threshold_avg
+        },
+        "min_range":{
+            "min": min_range_min,
+            "max": min_range_max
+        },
+        "max_range":{
+            "min": max_range_min,
+            "max": max_range_max
+        },
+        "avg_range":{
+            "min": avg_range_min,
+            "max": avg_range_max
+        },
+        "diff":{
+            "min":delta_min,
+            "max":delta_max,
+            "avg":delta_avg
+        },
+        "data_count": count
     }
 
 # 분석 성공 처리
