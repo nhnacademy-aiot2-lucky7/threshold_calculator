@@ -26,7 +26,7 @@ def analyze_pending_sensors():
         try:
             gid = sensor["gateway_id"]
             sid = sensor["sensor_id"]
-            stype = sensor["sensor_type"]
+            stype = sensor["type_en_name"]
 
             result = calculate_threshold_with_prophet(gid, sid, stype, duration="-1h")
             count = result.get("count", 0)

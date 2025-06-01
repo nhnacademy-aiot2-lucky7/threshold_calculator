@@ -23,7 +23,7 @@ def analyze_all_sensors():
         sid = sensor.get("sensor_id", "UNKNOWN")
         try:
             gid = sensor["gateway_id"]
-            stype = sensor["sensor_type"]
+            stype = sensor["type_en_name"]
 
             meta = get_sensor_meta(gid, sid, stype)
             last_count = meta.get("last_data_count", 0)
