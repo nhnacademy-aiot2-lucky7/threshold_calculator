@@ -14,7 +14,7 @@ def run_async(job_func):
     t.start()
 
 def run_scheduler():
-    logging.info("[SCHEDULER] pending 분석: 1시간마다 실행 예약됨")
+    logging.info(f"[SCHEDULER] pending 분석: {initAnalysisDuration}분마다 실행 예약됨")
     schedule.every(initAnalysisDuration).minutes.do(lambda: run_async(analyze_pending_sensors))
 
     logging.info("[SCHEDULER] 전체 분석: 매일 02:00 실행 예약됨")
