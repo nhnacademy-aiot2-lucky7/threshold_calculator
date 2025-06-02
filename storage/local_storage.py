@@ -1,4 +1,7 @@
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
+
+# 한국 시간대 (KST = UTC+9)
+KST = timezone(timedelta(hours=9))
 
 # 센서별 메타 정보 저장용 전역 딕셔너리
 sensor_meta = {}
@@ -21,7 +24,7 @@ def set_sensor_meta(gateway_id: str, sensor_id: str, sensor_type: str, data_coun
     sensor_meta[key] = {
         "last_data_count": data_count,
         "fail_count": fail_count,
-        "last_analysis_at": datetime.now(datetime.timezone.utc).isoformat()
+        "last_analysis_at": datetime.now(KST).isoformat()
     }
 
 # 게이트웨이 활성화 이력 조회

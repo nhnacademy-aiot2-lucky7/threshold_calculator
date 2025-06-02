@@ -1,6 +1,5 @@
 import logging
-import traceback
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from service.threshold_service import (
     calculate_threshold_with_prophet,
     handle_successful_analysis,
@@ -9,9 +8,12 @@ from service.threshold_service import (
 from service.sensor_service import update_sensor_state, get_sensor_list_by_state
 from storage.local_storage import get_sensor_meta
 
+# 한국 시간대 정의 (Asia/Seoul == UTC+9)
+KST = timezone(timedelta(hours=9))
+
 def analyze_all_sensors():
     logging.info("전체 센서 분석 시작")
-    now = datetime.now(datetime.timezone.utc)
+    now = datetime.now(KST)
 
     try:
         sensors = get_sensor_list_by_state(["completed", "abandoned"])
@@ -30,14 +32,14 @@ def analyze_all_sensors():
             last_at_str = meta.get("last_analysis_at")
 
             # abandoned → pending 복구
-            if sensor["state"] == "abandoned" and last_count > 0:
+            if sensor["status"] == "ABANDONED" and last_count > 0:
                 update_sensor_state(sid, "pending")
                 logging.info(f"[STATE] {sid} → pending (데이터 유입 확인)")
                 continue
 
             # completed → 하루 경과한 경우만 재분석
             if last_at_str:
-                last_at = datetime.fromisoformat(last_at_str)
+                last_at = datetime.fromisoformat(last_at_str).astimezone(KST)
                 if now - last_at < timedelta(days=1):
                     continue
 
@@ -48,6 +50,7 @@ def analyze_all_sensors():
             if result["ready"]:
                 handle_successful_analysis(gid, sid, stype, result)
             else:
+                logging.warning(result)
                 handle_failed_analysis(gid, sid, stype, new_count, result.get("reason"))
 
         except Exception as e:

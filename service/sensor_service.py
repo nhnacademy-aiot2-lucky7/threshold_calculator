@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime, timezone, timedelta
 import logging
 import requests
 from typing import List, Optional, Union
@@ -31,7 +31,7 @@ def save_result(gateway_id, sensor_id, sensor_type, result):
             "type_en_name": sensor_type,
         },
         **filtered_result,
-        "calculated_at": int(datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=9))).timestamp() * 1000),
+        "calculated_at": int(datetime.now(timezone(timedelta(hours=9))).timestamp() * 1000),
     }
     try:
         response = requests.post(f"{sensor_url}/threshold-histories", json=payload)
@@ -75,7 +75,7 @@ def get_sensor_list_by_state(state: Optional[Union[str, List[str]]] = None) -> l
 # gateway Id에 따른 센서 정보 조회
 def get_sensor_list_by_gateway_id(gateway_id):
     try:
-        response = requests.get(f"{sensor_url}/sensor-data-mappings/{gateway_id}/sersors")
+        response = requests.get(f"{sensor_url}/sensor-data-mappings/{gateway_id}/sensors")
         response.raise_for_status()
         return response.json()
     except requests.exceptions.RequestException as e:

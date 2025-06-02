@@ -7,17 +7,21 @@ from config.config import MIN_REQUIRED_COUNT
 from storage.local_storage import set_sensor_meta, get_sensor_meta
 from service.sensor_service import update_sensor_state, save_result, get_recent_thresholds
 
-def calculate_threshold_with_prophet(gateway_id, sensor_id, sensor_type, duration="-1h"):
-    count = get_sensor_data_count(gateway_id, sensor_id, sensor_type, duration)
+def calculate_threshold_with_prophet(gateway_id, sensor_id, sensor_type, duration="-1d"):
+    count = get_sensor_data_count(gateway_id, sensor_id, sensor_type)
+
     if count < MIN_REQUIRED_COUNT:
-        return {"ready": False, "reason": f"데이터 부족: {count}개 (최소 {MIN_REQUIRED_COUNT}개 필요)"}
+        return {"ready": False, "reason": f"데이터 부족: {count}개 (최소 {MIN_REQUIRED_COUNT}개 필요)", "count": count}
 
     records = get_sensor_values_with_time(gateway_id, sensor_id, sensor_type, duration)
     if not records:
-        return {"ready": False, "reason": "데이터는 있으나 값 추출 실패"}
+        return {"ready": False, "reason": "데이터는 있으나 값 추출 실패", "count" : count}
 
     df = pd.DataFrame(records)
     df.rename(columns={"time": "ds", "value": "y"}, inplace=True)
+
+
+    df['ds'] = pd.to_datetime(df['ds']).dt.tz_localize(None)
 
     model = Prophet()
     model.fit(df)
@@ -83,7 +87,7 @@ def calculate_threshold_with_prophet(gateway_id, sensor_id, sensor_type, duratio
 # 분석 성공 처리
 def handle_successful_analysis(gateway_id: str, sensor_id: str, sensor_type: str, result: dict):
     save_result(gateway_id, sensor_id, sensor_type, result)
-    update_sensor_state(sensor_id, "completed")
+    update_sensor_state(gateway_id, sensor_id, sensor_type, "completed")
     set_sensor_meta(gateway_id, sensor_id, sensor_type, result.get("count", 0), 0)
     logging.info(f"[OK] {sensor_id} 분석 완료")
 
@@ -99,9 +103,10 @@ def handle_failed_analysis(gateway_id: str, sensor_id: str, sensor_type: str, ne
         fail_count = 0
 
     set_sensor_meta(gateway_id, sensor_id, sensor_type, new_count, fail_count)
+    logging.warning(f"[handle_failed_analysis (new count) = {new_count}]")
 
     if fail_count >= 5 or new_count == 0:
-        update_sensor_state(sensor_id, "abandoned")
+        update_sensor_state(gateway_id, sensor_id, sensor_type, "abandoned")
         logging.warning(f"[ABANDON] {sensor_id} → abandoned (fail_count={fail_count})")
     else:
         logging.warning(f"[SKIP] {sensor_id} 분석 실패: {reason} (fail_count={fail_count})")

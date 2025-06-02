@@ -11,11 +11,11 @@ client = InfluxDBClient(
 query_api = client.query_api()
 
 # 센서 데이터 개수 조회
-def get_sensor_data_count(gateway_id: str, sensor_id: str, sensor_type: str, duration: str = "-1h") -> int:
+def get_sensor_data_count(gateway_id: str, sensor_id: str, sensor_type: str) -> int:
     query = f'''
     from(bucket: "{config.INFLUXDB_BUCKET}")
-        |> range(start: {duration})
-        |> filter(fn: (r) => r["_measurement"] == "sensor-data")
+        |> range(start: -30d)
+        |> filter(fn: (r) => r["_measurement"] == "sensor_data")
         |> filter(fn: (r) => r["gateway_id"] == "{gateway_id}")
         |> filter(fn: (r) => r["sensor_id"] == "{sensor_id}")
         |> filter(fn: (r) => r["_field"] == "{sensor_type}")
@@ -33,7 +33,7 @@ def get_sensor_values_with_time(gateway_id: str, sensor_id: str, sensor_type: st
     query = f'''
     from(bucket: "{config.INFLUXDB_BUCKET}")
         |> range(start: {duration})
-        |> filter(fn: (r) => r["_measurement"] == "sensor-data")
+        |> filter(fn: (r) => r["_measurement"] == "sensor_data")
         |> filter(fn: (r) => r["gateway_id"] == "{gateway_id}")
         |> filter(fn: (r) => r["sensor_id"] == "{sensor_id}")
         |> filter(fn: (r) => r["_field"] == "{sensor_type}")
