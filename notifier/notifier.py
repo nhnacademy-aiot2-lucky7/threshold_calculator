@@ -1,5 +1,8 @@
 import requests
 import logging
+from config import config
+
+ruleEngineUrl = config.RULE_ENGINE_URL
 
 def notify_rule_engine(gateway_id):
     payload = {
@@ -7,7 +10,7 @@ def notify_rule_engine(gateway_id):
         "status": "threshold_ready"
     }
     try:
-        response = requests.post("http://rule-engine/api/webhook/threshold-complete", json=payload)
+        response = requests.post(f"http://{ruleEngineUrl}/rule_engine/webhook/threshold_complete", json=payload)
         response.raise_for_status()
         logging.info(f"[WEBHOOK] ruleEngine 통보 완료: {response.status_code}")
     except requests.exceptions.RequestException as e:
