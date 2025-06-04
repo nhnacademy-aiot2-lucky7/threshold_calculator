@@ -7,7 +7,6 @@ from config import config
 VALID_STATES = {"pending", "completed", "abandoned"}
 
 sensor_url = config.SENSOR_SERVICE_URL
-gateway_url = config.GATEWAY_SERVICE_URL
 
 # 과거 임계치 조회
 def get_recent_thresholds(gateway_id, sensor_id, sensor_type, limit=5):
@@ -39,16 +38,6 @@ def save_result(gateway_id, sensor_id, sensor_type, result):
         logging.info(f"[POST] 저장 성공: {response.status_code}")
     except requests.exceptions.RequestException as e:
         logging.error(f"[ERROR] save_result 실패: {e}", exc_info=True)
-
-# 모든 게이트웨이 id 조회
-def get_all_gateway_id():
-    try:
-        response = requests.get(f"{gateway_url}/gateways/ids")
-        response.raise_for_status()
-        return response.json()
-    except requests.exceptions.RequestException as e:
-        logging.error(f"[ERROR] get_all_gateway_id 실패: {e}", exc_info=True)
-        return []
 
 # 상태에 따른 센서 정보 조회
 def get_sensor_list_by_state(state: Optional[Union[str, List[str]]] = None) -> list:

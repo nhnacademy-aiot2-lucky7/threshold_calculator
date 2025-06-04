@@ -10,4 +10,3 @@ INFLUXDB_BUCKET = os.getenv("INFLUXDB_BUCKET", "dongho")
 
 SENSOR_SERVICE_URL = os.getenv("SENSOR_SERVICE_URL", "http://localhost:10238")
 GATEWAY_SERVICE_URL = os.getenv("GATEWAY_SERVICE_URL", "http://localhost:10241")
-RULE_ENGINE_URL = os.getenv("RULE_ENGINE_URL","http://localhost:10245")
