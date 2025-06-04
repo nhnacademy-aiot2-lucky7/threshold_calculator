@@ -4,6 +4,8 @@ from storage.local_storage import is_gateway_notified, mark_gateway_as_notified
 from service.sensor_service import (
     get_sensor_list_by_state,
     get_sensor_list_by_gateway_id,
+)
+from service.gateway_service import(
     get_all_gateway_id
 )
 from service.threshold_service import (
