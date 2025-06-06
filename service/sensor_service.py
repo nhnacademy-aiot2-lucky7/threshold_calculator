@@ -64,7 +64,7 @@ def get_sensor_list_by_state(state: Optional[Union[str, List[str]]] = None) -> l
 # gateway Id에 따른 센서 정보 조회
 def get_sensor_list_by_gateway_id(gateway_id):
     try:
-        response = requests.get(f"{sensor_url}/sensor-data-mappings/{gateway_id}/sensors")
+        response = requests.get(f"{sensor_url}/sensor-data-mappings/gateway-id/{gateway_id}/sensors")
         response.raise_for_status()
         return response.json()
     except requests.exceptions.RequestException as e:

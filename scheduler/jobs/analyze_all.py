@@ -33,7 +33,7 @@ def analyze_all_sensors():
 
             # abandoned → pending 복구
             if sensor["status"] == "ABANDONED" and last_count > 0:
-                update_sensor_state(sid, "pending")
+                update_sensor_state(gid, sid, stype, "pending")
                 logging.info(f"[STATE] {sid} → pending (데이터 유입 확인)")
                 continue
 
