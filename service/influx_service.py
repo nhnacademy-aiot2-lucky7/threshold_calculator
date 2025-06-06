@@ -4,7 +4,7 @@ from config import config
 # InfluxDB client 생성
 client = InfluxDBClient(
     url=config.INFLUXDB_URL,
-    token=config.INFLUXDB_TOKNE,
+    token=config.INFLUXDB_TOKEN,
     org=config.INFLUXDB_ORG
 )
 
