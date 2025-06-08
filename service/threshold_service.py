@@ -50,10 +50,10 @@ def calculate_threshold_with_prophet(gateway_id, sensor_id, sensor_type, duratio
         avg_range_max = round(threshold_avg + avg_std, 2)
     else:
         delta_min = delta_max = delta_avg = 0.0
-        min_range_min = threshold_min
-        min_range_max = threshold_min + 1.0
-        max_range_min = threshold_max - 1.0
-        max_range_max = threshold_max
+        min_range_min = threshold_min - 1.0
+        min_range_max = threshold_min 
+        max_range_min = threshold_max
+        max_range_max = threshold_max + 1.0
         avg_range_min = threshold_avg - 0.5
         avg_range_max = threshold_avg + 0.5
 
