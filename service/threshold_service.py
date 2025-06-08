@@ -39,15 +39,19 @@ def calculate_threshold_with_prophet(gateway_id, sensor_id, sensor_type, duratio
         delta_max = round(threshold_max - np.mean([p["threshold_max"] for p in previous]), 2)
         delta_avg = round(threshold_avg - np.mean([p["threshold_avg"] for p in previous]), 2)
 
+        # 기존 계산 후 보정
         min_range_min = round(np.min([p["threshold_min"] for p in previous]), 2)
         min_range_max = round(threshold_min + np.std([p["threshold_min"] for p in previous]), 2)
+        min_range_min, min_range_max = fix_range(min_range_min, min_range_max)
 
         max_range_min = round(threshold_max - np.std([p["threshold_max"] for p in previous]), 2)
         max_range_max = round(np.max([p["threshold_max"] for p in previous]), 2)
+        max_range_min, max_range_max = fix_range(max_range_min, max_range_max)
 
         avg_std = np.std([p["threshold_avg"] for p in previous])
         avg_range_min = round(threshold_avg - avg_std, 2)
         avg_range_max = round(threshold_avg + avg_std, 2)
+        avg_range_min, avg_range_max = fix_range(avg_range_min, avg_range_max)
     else:
         delta_min = delta_max = delta_avg = 0.0
         min_range_min = threshold_min - 1.0
@@ -83,6 +87,13 @@ def calculate_threshold_with_prophet(gateway_id, sensor_id, sensor_type, duratio
         },
         "data_count": count
     }
+
+def fix_range(min_val, max_val):
+    if min_val > max_val:
+        # 평균값 기준으로 살짝 보정
+        mid = round((min_val + max_val) / 2, 2)
+        return mid, mid
+    return min_val, max_val
 
 # 분석 성공 처리
 def handle_successful_analysis(gateway_id: str, sensor_id: str, sensor_type: str, result: dict):
