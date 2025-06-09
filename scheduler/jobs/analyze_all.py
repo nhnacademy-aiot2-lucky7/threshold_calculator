@@ -1,7 +1,7 @@
 import logging
 from datetime import datetime, timedelta, timezone
 from service.threshold_service import (
-    calculate_threshold_with_prophet,
+    calculate_static_threshold,
     handle_successful_analysis,
     handle_failed_analysis
 )
@@ -44,7 +44,7 @@ def analyze_all_sensors():
                     continue
 
             # 재분석
-            result = calculate_threshold_with_prophet(gid, sid, stype, duration="-7d")
+            result = calculate_static_threshold(gid, sid, stype, duration="-7d")
             new_count = result.get("count", 0)
 
             if result["ready"]:

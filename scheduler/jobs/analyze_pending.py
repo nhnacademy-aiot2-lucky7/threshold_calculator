@@ -9,7 +9,7 @@ from service.gateway_service import(
     get_all_gateway_id
 )
 from service.threshold_service import (
-    calculate_threshold_with_prophet,
+    calculate_static_threshold,
     handle_successful_analysis,
     handle_failed_analysis
 )
@@ -30,7 +30,7 @@ def analyze_pending_sensors():
             sid = sensor["sensor_id"]
             stype = sensor["type_en_name"]
 
-            result = calculate_threshold_with_prophet(gid, sid, stype, duration="-7d")
+            result = calculate_static_threshold(gid, sid, stype, duration="-7d")
             count = result.get("count", 0)
 
             if result["ready"]:

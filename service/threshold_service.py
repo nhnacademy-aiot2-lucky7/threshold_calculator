@@ -1,37 +1,40 @@
 import pandas as pd
 import numpy as np
 import logging
-from prophet import Prophet
 from service.influx_service import get_sensor_data_count, get_sensor_values_with_time
 from config.config import MIN_REQUIRED_COUNT
 from storage.local_storage import set_sensor_meta, get_sensor_meta
 from service.sensor_service import update_sensor_state, save_result, get_recent_thresholds
 
-def calculate_threshold_with_prophet(gateway_id, sensor_id, sensor_type, duration="-1d"):
-    count = get_sensor_data_count(gateway_id, sensor_id, sensor_type)
+STD_MULTIPLIER = 2
 
+def calculate_static_threshold(gateway_id, sensor_id, sensor_type, duration="-7d"):
+    count = get_sensor_data_count(gateway_id, sensor_id, sensor_type)
     if count < MIN_REQUIRED_COUNT:
-        return {"ready": False, "reason": f"데이터 부족: {count}개 (최소 {MIN_REQUIRED_COUNT}개 필요)", "count": count}
+        return {
+            "ready": False,
+            "reason": f"데이터 부족: {count}개 (최소 {MIN_REQUIRED_COUNT}개 필요)",
+            "count": count
+        }
 
     records = get_sensor_values_with_time(gateway_id, sensor_id, sensor_type, duration)
     if not records:
-        return {"ready": False, "reason": "데이터는 있으나 값 추출 실패", "count" : count}
+        return {
+            "ready": False,
+            "reason": "데이터는 있으나 값 추출 실패",
+            "count": count
+        }
 
     df = pd.DataFrame(records)
     df.rename(columns={"time": "ds", "value": "y"}, inplace=True)
-
-
     df['ds'] = pd.to_datetime(df['ds']).dt.tz_localize(None)
 
-    model = Prophet()
-    model.fit(df)
-    future = model.make_future_dataframe(periods=0)
-    forecast = model.predict(future)
-    last = forecast.iloc[-1]
+    mean = df['y'].mean()
+    std = df['y'].std()
 
-    threshold_min = round(last["yhat_lower"], 2)
-    threshold_max = round(last["yhat_upper"], 2)
-    threshold_avg = round(last["yhat"], 2)
+    threshold_min = round(mean - STD_MULTIPLIER * std, 2)
+    threshold_max = round(mean + STD_MULTIPLIER * std, 2)
+    threshold_avg = round(mean, 2)
 
     previous = get_recent_thresholds(gateway_id, sensor_id, sensor_type, limit=5)
     if previous:
@@ -39,7 +42,6 @@ def calculate_threshold_with_prophet(gateway_id, sensor_id, sensor_type, duratio
         delta_max = round(threshold_max - np.mean([p["threshold_max"] for p in previous]), 2)
         delta_avg = round(threshold_avg - np.mean([p["threshold_avg"] for p in previous]), 2)
 
-        # 기존 계산 후 보정
         min_range_min = round(np.min([p["threshold_min"] for p in previous]), 2)
         min_range_max = round(threshold_min + np.std([p["threshold_min"] for p in previous]), 2)
         min_range_min, min_range_max = fix_range(min_range_min, min_range_max)
@@ -63,34 +65,33 @@ def calculate_threshold_with_prophet(gateway_id, sensor_id, sensor_type, duratio
 
     return {
         "ready": True,
-        "threshold":{
+        "threshold": {
             "min": threshold_min,
             "max": threshold_max,
             "avg": threshold_avg
         },
-        "min_range":{
+        "min_range": {
             "min": min_range_min,
             "max": min_range_max
         },
-        "max_range":{
+        "max_range": {
             "min": max_range_min,
             "max": max_range_max
         },
-        "avg_range":{
+        "avg_range": {
             "min": avg_range_min,
             "max": avg_range_max
         },
-        "diff":{
-            "min":delta_min,
-            "max":delta_max,
-            "avg":delta_avg
+        "diff": {
+            "min": delta_min,
+            "max": delta_max,
+            "avg": delta_avg
         },
-        "data_count": count
+        "data_count": len(df)
     }
 
 def fix_range(min_val, max_val):
     if min_val > max_val:
-        # 평균값 기준으로 살짝 보정
         mid = round((min_val + max_val) / 2, 2)
         return mid, mid
     return min_val, max_val
