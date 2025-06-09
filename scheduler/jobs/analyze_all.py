@@ -44,7 +44,7 @@ def analyze_all_sensors():
                     continue
 
             # 재분석
-            result = calculate_threshold_with_prophet(gid, sid, stype, duration="-1h")
+            result = calculate_threshold_with_prophet(gid, sid, stype, duration="-7d")
             new_count = result.get("count", 0)
 
             if result["ready"]:
