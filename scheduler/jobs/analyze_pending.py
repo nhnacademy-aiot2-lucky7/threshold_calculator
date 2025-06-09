@@ -45,10 +45,12 @@ def analyze_pending_sensors():
     # 게이트웨이별로 분석 완료 여부 확인 후 통보
     for gid in get_all_gateway_id():
         if is_gateway_analysis_completed(gid) and not is_gateway_notified(gid):
+            logging.info("게이트웨이 모든 센서 분석 완료! 분석 통보 시작!")
             notify_rule_engine(gid)
             mark_gateway_as_notified(gid)
 
 # 게이트웨이의 센서들 중 pending이 있는지 확인
 def is_gateway_analysis_completed(gateway_id) -> bool:
     sensors = get_sensor_list_by_gateway_id(gateway_id)
+    logging.info(f"{gateway_id}의 센서 : {sensors}")
     return not any(sensor["status"] == "PENDING" for sensor in sensors)
