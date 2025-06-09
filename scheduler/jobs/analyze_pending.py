@@ -52,5 +52,4 @@ def analyze_pending_sensors():
 # 게이트웨이의 센서들 중 pending이 있는지 확인
 def is_gateway_analysis_completed(gateway_id) -> bool:
     sensors = get_sensor_list_by_gateway_id(gateway_id)
-    logging.info(f"{gateway_id}의 센서 : {sensors}")
     return not any(sensor["status"] == "PENDING" for sensor in sensors)
